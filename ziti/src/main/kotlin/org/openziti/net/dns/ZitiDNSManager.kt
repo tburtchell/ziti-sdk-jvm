@@ -27,6 +27,7 @@ import java.io.Writer
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
@@ -40,7 +41,8 @@ internal object ZitiDNSManager : DNSResolver, CoroutineScope {
     const val startPostfix = 0x0101
     internal val postfix = AtomicInteger(startPostfix) // start with 1.1 postfix
 
-    internal val host2Ip = mutableMapOf<String, InetAddress>()
+    internal val host2Addr = mutableMapOf<String, InetAddress>()
+    internal val ip2Addr = mutableMapOf<ByteBuffer,InetAddress>()
 
     internal val dnsBroadCast = MutableSharedFlow<DNSResolver.DNSEvent>()
 
@@ -48,18 +50,25 @@ internal object ZitiDNSManager : DNSResolver, CoroutineScope {
         val ip = when {
             IPAddress.isValidIPv4(hostname) -> Inet4Address.getByName(hostname)
             IPAddress.isValidIPv6(hostname) -> Inet6Address.getByName(hostname)
-            else -> host2Ip.getOrPut(hostname) { nextAddr(hostname) }
+            else -> {
+                val nextAddr = nextAddr(hostname)
+                host2Addr.getOrPut(hostname.lowercase()) { nextAddr }
+
+                // Need to wrap it because ByteBuffers don't work as map keys
+                ip2Addr.getOrPut(ByteBuffer.wrap(nextAddr.address)) { nextAddr }
+            }
         }
         launch {
             dnsBroadCast.emit(DNSResolver.DNSEvent(hostname, ip, false))
         }
         return ip
     }
-    override fun resolve(hostname: String): InetAddress? = host2Ip.get(hostname.lowercase())
+    override fun resolve(hostname: String): InetAddress? = host2Addr.get(hostname.lowercase())
+    override fun resolve(addr: ByteArray): InetAddress? = ip2Addr.get(ByteBuffer.wrap(addr))
 
     override fun subscribe(sub: (DNSResolver.DNSEvent) -> Unit) {
         launch {
-            host2Ip.forEach { h, ip ->
+            host2Addr.forEach { (h, ip) ->
                 sub(DNSResolver.DNSEvent(h, ip, false))
             }
             dnsBroadCast.collect { sub(it) }
@@ -80,12 +89,13 @@ internal object ZitiDNSManager : DNSResolver, CoroutineScope {
     }
 
     internal fun reset() {
-        host2Ip.clear()
+        host2Addr.clear()
+        ip2Addr.clear()
         postfix.set(startPostfix)
     }
 
     override fun dump(writer: Writer) {
-        for ((h,ip) in host2Ip) {
+        for ((h,ip) in host2Addr) {
             writer.appendLine("$h -> $ip")
         }
     }

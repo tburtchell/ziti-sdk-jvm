@@ -22,6 +22,7 @@ import java.util.function.Consumer
 
 interface DNSResolver {
     fun resolve(hostname: String): InetAddress?
+    fun resolve(address: ByteArray): InetAddress?
 
     data class DNSEvent(val hostname: String?, val ip: InetAddress, val removed: Boolean)
     fun subscribe(sub: (DNSEvent) -> Unit)
