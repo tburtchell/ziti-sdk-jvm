@@ -30,12 +30,12 @@ import javax.net.SocketFactory
  * @see AsyncSocketImpl
  */
 internal
-class AsychChannelSocket(internal val impl: AsyncSocketImpl = AsyncSocketImpl()): Socket(impl) {
+class AsyncChannelSocket(internal val impl: AsyncSocketImpl = AsyncSocketImpl()): Socket(impl) {
 
     class Factory: SocketFactory() {
-        override fun createSocket(): Socket  = AsychChannelSocket()
-        override fun createSocket(host: String?, port: Int): Socket  = AsychChannelSocket(host, port)
-        override fun createSocket(host: InetAddress?, port: Int): Socket  = AsychChannelSocket(host, port)
+        override fun createSocket(): Socket  = AsyncChannelSocket()
+        override fun createSocket(host: String?, port: Int): Socket  = AsyncChannelSocket(host, port)
+        override fun createSocket(host: InetAddress?, port: Int): Socket  = AsyncChannelSocket(host, port)
 
         override fun createSocket(host: String?, port: Int, localHost: InetAddress?, localPort: Int): Socket  {
             TODO("Not yet implemented")

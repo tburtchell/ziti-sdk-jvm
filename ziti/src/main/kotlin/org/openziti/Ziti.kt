@@ -84,6 +84,13 @@ object Ziti {
     @JvmStatic
     fun getSSLSocketFactory(): SSLSocketFactory = AsyncTLSSocketFactory()
 
+    /**
+     * Uses reflection allow the INetAddress class to resolve Ziti services by host and port. This may be required
+     * when adding Ziti networking to existing applications that do not allow implementors to provide socket factories
+     */
+    @JvmStatic
+    fun installZitiNameServices() = ZitiImpl.installZitiNameServices()
+
     @JvmStatic
     fun getDNSResolver(): DNSResolver = ZitiDNSManager
 

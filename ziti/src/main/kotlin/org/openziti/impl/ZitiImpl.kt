@@ -25,6 +25,8 @@ import org.openziti.identity.Enroller
 import org.openziti.identity.KeyStoreIdentity
 import org.openziti.identity.findIdentityAlias
 import org.openziti.identity.loadKeystore
+import org.openziti.net.dns.NameService
+import org.openziti.net.dns.ZitiNameService
 import org.openziti.net.internal.Sockets
 import org.openziti.util.Logged
 import org.openziti.util.Version
@@ -93,6 +95,7 @@ internal object ZitiImpl : Logged by ZitiLog() {
 
     fun init(ks: KeyStore, seamless: Boolean): List<ZitiContext> {
         if (seamless) {
+            installZitiNameServices()
             initInternalNetworking()
         }
 
@@ -103,6 +106,10 @@ internal object ZitiImpl : Logged by ZitiLog() {
         }
 
         return contexts
+    }
+
+    fun installZitiNameServices() {
+        NameService.install(ZitiNameService)
     }
 
     private fun isZitiIdentity(ks: KeyStore, alias: String): Boolean {
