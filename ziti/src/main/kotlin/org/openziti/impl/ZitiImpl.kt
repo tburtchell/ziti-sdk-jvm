@@ -105,6 +105,8 @@ internal object ZitiImpl : Logged by ZitiLog() {
         return contexts
     }
 
+    fun isSeamless(): Boolean = Sockets.isInitialized()
+
     private fun isZitiIdentity(ks: KeyStore, alias: String): Boolean {
         if (!ks.isKeyEntry(alias))
             return false
