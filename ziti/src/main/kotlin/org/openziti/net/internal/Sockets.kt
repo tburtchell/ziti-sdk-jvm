@@ -29,6 +29,8 @@ internal object Sockets : Logged by ZitiLog() {
     private val initialized = AtomicBoolean(false)
     var defaultSoTimeout: Int = 0
 
+    fun isInitialized(): Boolean = initialized.get()
+
     fun init() {
         if (initialized.compareAndSet(false, true)) {
             defaultSoTimeout = Socket().soTimeout
