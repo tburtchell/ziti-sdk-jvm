@@ -24,7 +24,7 @@ import java.io.ByteArrayOutputStream;
 
 public class Sample {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         // usage: sample <config> <service> [host-header]
 
@@ -38,6 +38,12 @@ public class Sample {
         String hostHeader = args.length > 2 ? String.format("Host: %s\n", args[2]) : "";
 
         ZitiContext ziti = Ziti.newContext(config, "".toCharArray());
+
+        long end = System.currentTimeMillis() + 10000;
+        while (null == ziti.getService(service) && System.currentTimeMillis() < end) {
+            System.out.println("Waiting for " + service + " to become available");
+            Thread.sleep(200);
+        }
 
         ZitiConnection conn = ziti.dial(service);
 
